@@ -1,0 +1,2134 @@
+﻿<html lang="ru"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Калькулятор отчетов PM</title>
+    <style>
+        /* ---------- Reset & Base ---------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0a1929;
+            color: #e8f0fe;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        body::before {
+            content: "⚕ PARAMEDIC DEPARTMENT";
+            display: block;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #b3d9ff;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(179, 217, 255, 0.15);
+            animation: glowPulse 3s infinite alternate;
+        }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 10px rgba(179, 217, 255, 0.1); }
+            100% { text-shadow: 0 0 30px rgba(179, 217, 255, 0.4); }
+        }
+
+        /* ---------- Status Bar ---------- */
+        #statusBar {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 14px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(179, 217, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #b0cce8;
+        }
+        #statusBar .online-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #statusBar .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        #statusBar .dot.online {
+            background: #6fcf97;
+            box-shadow: 0 0 10px rgba(111, 207, 151, 0.5);
+        }
+        #statusBar .dot.offline {
+            background: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        #statusBar .save-status {
+            color: #8899aa;
+            font-size: 0.85rem;
+        }
+        #statusBar .save-status.saved {
+            color: #6fcf97;
+        }
+
+        /* ---------- Cards ---------- */
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(179, 217, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px 24px;
+            margin: 14px 0;
+            width: 100%;
+            max-width: 1100px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: transform 0.25s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+        }
+        h2 {
+            color: #b3d9ff;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(179, 217, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        /* ---------- Grid & Inputs ---------- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+        }
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(179, 217, 255, 0.25);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8f0fe;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #8cc4ff;
+            box-shadow: 0 0 0 3px rgba(140, 196, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        input::placeholder {
+            color: #8899aa;
+        }
+        input[type="date"] {
+            color-scheme: dark;
+            cursor: pointer;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        /* ---------- Select ---------- */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #0a1929 !important;
+            color: #b3d9ff !important;
+            border: 1px solid rgba(179, 217, 255, 0.3);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b3d9ff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        select option {
+            background: #0a1929 !important;
+            color: #b3d9ff !important;
+            padding: 8px 12px;
+        }
+        select option:hover,
+        select option:checked {
+            background: #1a2f44 !important;
+            color: #fff !important;
+        }
+
+        /* ---------- Custom Checkbox ---------- */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border: 2px solid rgba(179, 217, 255, 0.4);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        input[type="checkbox"]:checked {
+            background: #5fa8ff;
+            border-color: #5fa8ff;
+        }
+        input[type="checkbox"]:checked::after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        input[type="checkbox"]:hover {
+            border-color: #8cc4ff;
+            box-shadow: 0 0 8px rgba(140, 196, 255, 0.3);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 6px 0;
+            color: #c0d8f0;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 4px;
+        }
+        .checkbox-group .label-text {
+            user-select: none;
+        }
+        .penalty-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px 30px;
+            margin-top: 8px;
+        }
+
+        /* ---------- Duty Cards ---------- */
+        .duty-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid rgba(179, 217, 255, 0.1);
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .duty-card:hover {
+            border-color: rgba(179, 217, 255, 0.25);
+            background: rgba(255, 255, 255, 0.07);
+        }
+        .duty-card .duty-label {
+            font-weight: 500;
+            color: #b3d9ff;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .duty-card .duty-rate {
+            color: #8899aa;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+        }
+        .duty-card input {
+            padding: 10px 14px;
+        }
+        .duty-points-display {
+            color: #8cc4ff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 6px;
+        }
+
+        /* ---------- Remark Buttons ---------- */
+        .remark-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin: 10px 0 6px 0;
+        }
+        .remark-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(179, 217, 255, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #c0d8f0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            white-space: normal;
+            word-break: break-word;
+        }
+        .remark-btn:hover {
+            background: rgba(95, 168, 255, 0.16);
+            border-color: #8cc4ff;
+            color: #fff;
+            box-shadow: 0 0 18px rgba(95, 168, 255, 0.28);
+            transform: translateY(-1px);
+        }
+        /* Выбранное замечание не должно выглядеть как постоянно наведённое.
+           Яркая подсветка появляется только при наведении. */
+        .remark-btn.active {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(179, 217, 255, 0.3);
+            color: #c0d8f0;
+            box-shadow: none;
+            transform: none;
+        }
+        .remark-btn.active:hover {
+            background: rgba(95, 168, 255, 0.16);
+            border-color: #8cc4ff;
+            color: #fff;
+            box-shadow: 0 0 18px rgba(95, 168, 255, 0.28);
+            transform: translateY(-1px);
+        }
+
+        /* ---------- Hidden ---------- */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ---------- Table ---------- */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 6px 0;
+        }
+        table {
+            width: 100%;
+            min-width: 700px;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+        th {
+            color: #b3d9ff;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            padding: 8px 10px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        td {
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            color: #e8f0fe;
+        }
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        tbody tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+        tbody tr td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+        .error td {
+            background: rgba(255, 80, 80, 0.12) !important;
+        }
+
+        .bodi-input {
+            width: 60px;
+            padding: 6px 8px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(179, 217, 255, 0.25);
+            border-radius: 8px;
+            color: #e8f0fe;
+            font-size: 0.95rem;
+        }
+        .bodi-input:focus {
+            border-color: #8cc4ff;
+            box-shadow: 0 0 0 3px rgba(140, 196, 255, 0.2);
+            outline: none;
+        }
+
+        /* ---------- Progress Bars ---------- */
+        .progress {
+            height: 22px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 4px 0 12px;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+        .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5fa8ff, #8cc4ff);
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            width: 0%;
+            box-shadow: 0 0 12px rgba(140, 196, 255, 0.3);
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            color: #c0d8f0;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        .progress-label .val {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* ---------- Buttons ---------- */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #5fa8ff, #3d7ec9);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(95, 168, 255, 0.25);
+            letter-spacing: 0.3px;
+        }
+        button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 28px rgba(95, 168, 255, 0.4);
+            background: linear-gradient(135deg, #70b4ff, #4a8ad9);
+        }
+        button:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #19c37d, #15a067) !important;
+            box-shadow: 0 4px 20px rgba(25, 195, 125, 0.5) !important;
+        }
+
+        /* ---------- Textarea ---------- */
+        textarea#out {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(179, 217, 255, 0.15);
+            color: #e0ecf9;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding: 14px;
+            border-radius: 14px;
+            margin-top: 20px;
+            resize: vertical;
+            width: 100%;
+            min-height: 120px;
+        }
+
+        /* ---------- Dashboard ---------- */
+        #visualReport {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(179, 217, 255, 0.12);
+            animation: dashSlideUp 0.3s ease;
+        }
+        @keyframes dashSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(179, 217, 255, 0.1);
+        }
+        .report-header .name {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .report-header .static {
+            font-size: 1rem;
+            color: #b0cce8;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px 16px;
+            border-radius: 40px;
+        }
+        .report-category {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin: 6px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #8cc4ff;
+            transition: background 0.2s;
+        }
+        .report-category:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .report-category .label {
+            font-size: 0.95rem;
+            color: #c0d8f0;
+        }
+        .report-category .value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .report-total {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 16px;
+            margin: 16px 0;
+            background: rgba(140, 196, 255, 0.08);
+            border-radius: 16px;
+            border: 1px solid rgba(140, 196, 255, 0.15);
+        }
+        .report-total span {
+            color: #8cc4ff;
+        }
+        .report-errors {
+            background: rgba(255, 107, 107, 0.08);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            border-left: 3px solid #ff6b6b;
+        }
+        .report-errors .label {
+            color: #ff6b6b;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .report-errors ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #ffb3b3;
+        }
+        .report-errors li {
+            margin: 4px 0;
+        }
+        .report-ok {
+            background: rgba(111, 207, 151, 0.08);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            border-left: 3px solid #6fcf97;
+            color: #6fcf97;
+            font-weight: 500;
+            text-align: center;
+        }
+        .report-remarks {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            border: 1px solid rgba(179, 217, 255, 0.06);
+            color: #b0cce8;
+            font-style: italic;
+        }
+        .report-remarks strong {
+            color: #c0d8f0;
+            font-style: normal;
+        }
+        .duty-breakdown {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 20px;
+            margin: 4px 0;
+            font-size: 0.9rem;
+            color: #b0cce8;
+        }
+        .duty-breakdown .duty-item {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+
+        /* ---------- Offline Notification ---------- */
+        #offlineNotification {
+            display: none;
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: rgba(255, 107, 107, 0.9);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+        #offlineNotification.show {
+            display: block;
+        }
+        @keyframes slideIn {
+            0% { transform: translateX(100px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        #version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 12px;
+            user-select: none;
+            z-index: 9999;
+        }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            .card { padding: 16px; }
+            .report-header .name { font-size: 1.3rem; }
+            .report-total { font-size: 1.5rem; }
+            .grid { grid-template-columns: 1fr 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .remark-buttons { grid-template-columns: 1fr 1fr; }
+            table { min-width: 500px; }
+            #statusBar { flex-direction: column; align-items: stretch; text-align: center; }
+        }
+        @media (max-width: 500px) {
+            body { padding: 10px; }
+            .card { padding: 12px; }
+            .grid { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr; }
+            .remark-buttons { grid-template-columns: 1fr; }
+            button { width: 100%; }
+            .bodi-input { width: 50px; }
+            table { min-width: 400px; }
+        }
+        @media (max-width: 400px) {
+            table { min-width: 300px; }
+            th, td { padding: 6px 6px; font-size: 0.8rem; }
+            .bodi-input { width: 40px; padding: 4px; }
+        }
+    
+        /* ---------- Readiness / inspector panel ---------- */
+</style>
+
+<style id="custom-interface-v4">
+/* ============================================================
+   NEW INTERFACE — completely different visual direction
+   Functionality/IDs/JS are intentionally preserved.
+   ============================================================ */
+:root{
+    --bg:#071018;
+    --panel:#0d1821;
+    --panel-2:#101f2a;
+    --line:#1d3542;
+    --line-soft:#162a35;
+    --text:#edf7f8;
+    --muted:#8da5ae;
+    --accent:#27d3b2;
+    --accent-2:#58a6ff;
+    --danger:#ff6b7a;
+    --warning:#f0bd55;
+    --ok:#4bd18c;
+    --radius:14px;
+}
+html{background:var(--bg);}
+body{
+    background:
+      radial-gradient(circle at 10% 0%, rgba(39,211,178,.08), transparent 28%),
+      radial-gradient(circle at 90% 8%, rgba(88,166,255,.07), transparent 24%),
+      var(--bg);
+    color:var(--text);
+    padding:28px 18px 55px;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+body::before{
+    content:"MEDICAL REPORT CENTER";
+    color:var(--accent);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:3px;
+    text-shadow:none;
+    margin:0 0 8px;
+    opacity:.9;
+    animation:none;
+}
+h1{
+    width:100%; max-width:1100px;
+    margin:0 0 18px;
+    padding:20px 24px;
+    background:linear-gradient(135deg,#0f202b,#0a151d);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    color:#fff;
+    font-size:clamp(1.45rem,3vw,2rem);
+    font-weight:750;
+    letter-spacing:-.5px;
+    box-shadow:0 12px 35px rgba(0,0,0,.22);
+}
+h1::after{
+    content:" / расчёт повышения и недельных отчётов";
+    color:var(--muted);
+    font-weight:500;
+}
+#statusBar{
+    max-width:1100px;
+    margin:0 0 12px;
+    padding:9px 14px;
+    background:#0a151d;
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:none;
+    color:var(--muted);
+}
+#statusBar .dot{width:8px;height:8px;box-shadow:none!important}
+#statusBar .dot.online{background:var(--ok)}
+#statusBar .dot.offline{background:var(--danger)}
+#statusBar .save-status.saved{color:var(--accent)}
+.card{
+    max-width:1100px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin:12px 0;
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    position:relative;
+    overflow:hidden;
+    transition:border-color .2s,transform .2s,box-shadow .2s;
+}
+.card::before{
+    content:"";
+    position:absolute;
+    left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,var(--accent),transparent);
+    opacity:.75;
+}
+.card:hover{
+    transform:none;
+    border-color:#2b4a59;
+    box-shadow:0 14px 38px rgba(0,0,0,.24);
+}
+h2{
+    color:#fff;
+    font-size:1.05rem;
+    font-weight:750;
+    letter-spacing:0;
+    margin-bottom:18px;
+    padding:0 0 13px;
+    border-bottom:1px solid var(--line-soft);
+}
+.grid{gap:12px}
+input,select,textarea{
+    background:#09141c;
+    border:1px solid #24404d;
+    color:var(--text);
+    border-radius:9px;
+    padding:11px 13px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.015);
+}
+input:hover,select:hover,textarea:hover{border-color:#315566}
+input:focus,select:focus,textarea:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 2px rgba(39,211,178,.12);
+    background:#0a171f;
+}
+input::placeholder{color:#637b85}
+select{background-color:#09141c!important;color:#dff5f3!important}
+label,.label-text{color:#a8bdc5}
+.checkbox-group{
+    padding:8px 11px;
+    border:1px solid var(--line-soft);
+    background:#0a161e;
+    border-radius:9px;
+}
+.checkbox-group input[type="checkbox"]{accent-color:var(--accent)}
+#penalty-group,#botNotWorking-group{color:#a8bdc5}
+.table-wrapper{
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:auto;
+    background:#09141b;
+}
+table{border-collapse:separate;border-spacing:0;min-width:650px}
+th{
+    background:#10232e!important;
+    color:#8eaeb9!important;
+    text-transform:uppercase;
+    font-size:.72rem!important;
+    letter-spacing:.7px;
+    border-bottom:1px solid var(--line)!important;
+}
+td{border-bottom:1px solid #142832!important;color:#d7e7eb!important}
+tr:last-child td{border-bottom:none!important}
+tbody tr:hover{background:#0d2029!important}
+.duty-card{
+    background:#0a161e!important;
+    border:1px solid var(--line)!important;
+    border-radius:11px!important;
+    padding:15px!important;
+}
+.duty-label{color:#fff!important;font-weight:750!important}
+.duty-rate{color:#738d97!important}
+.duty-points-display{color:var(--accent)!important;font-weight:800!important}
+.remark-buttons{gap:8px!important}
+.remark-btn{
+    background:#0a161e!important;
+    border:1px solid #1d3845!important;
+    color:#9eb4bc!important;
+    border-radius:8px!important;
+}
+.remark-btn:hover{
+    background:#0d2929!important;
+    border-color:#257f70!important;
+    color:#dffaf6!important;
+}
+button{
+    border-radius:9px;
+    background:#15303b;
+    border:1px solid #2a4e5b;
+    box-shadow:none;
+    color:#eaf8f7;
+    padding:11px 18px;
+    font-weight:750;
+}
+button:hover{
+    transform:none;
+    background:#1b3c48;
+    border-color:#3c6978;
+    box-shadow:none;
+}
+button:first-child{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#06221d;
+}
+button:first-child:hover{background:#42e2c5}
+.btn-success{background:var(--ok)!important;color:#052216!important;border-color:var(--ok)!important;box-shadow:none!important}
+textarea#out{
+    background:#061016;
+    border:1px solid var(--line);
+    color:#cfe4e8;
+    border-radius:10px;
+    font-size:.9rem;
+    margin-top:16px;
+}
+#visualReport{
+    background:#09161e;
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:18px;
+    box-shadow:none;
+    backdrop-filter:none;
+}
+.report-header{border-bottom:1px solid var(--line)}
+.report-header .name{color:#fff}
+.report-header .static{background:#10232e;color:#9eb6bf}
+.report-category{
+    background:#0b1921;
+    border:1px solid #152b36;
+    border-left:2px solid #2c665d;
+    border-radius:8px;
+    margin:6px 0;
+}
+.report-category:hover{background:#0d2029}
+.report-category .label{color:#8fa8b1}
+.report-category .value{color:#eef8fa}
+.report-total{
+    background:#0b2422;
+    border:1px solid #1d4d46;
+    border-radius:9px;
+}
+.report-total span{color:var(--accent)}
+.report-ok{background:#0a241a;border-left-color:var(--ok);color:var(--ok)}
+.report-errors{background:#281319;border-left-color:var(--danger)}
+.report-errors .label{color:var(--danger)}
+.report-errors ul{color:#ffadb7}
+.report-remarks{background:#0a161e;border-color:var(--line);color:#91aab3}
+.duty-breakdown .duty-item{background:#10212a}
+#offlineNotification{background:#4a1d26;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#version{color:#49616b}
+@media(max-width:768px){
+    body{padding:18px 10px 45px}
+    h1{padding:17px;font-size:1.3rem}
+    h1::after{display:block;margin-top:5px;font-size:.82rem}
+    .card{padding:17px}
+}
+@media(max-width:500px){
+    .card{padding:14px}
+    .btn-group{display:grid;grid-template-columns:1fr}
+    button{width:100%}
+}
+</style>
+
+
+<style id="custom-interface-v5">
+/* ============================================================
+   BLUE NEON / COMMAND DESK — визуальная переработка
+   Логика и существующие ID не изменяются.
+   ============================================================ */
+:root{
+  --bg:#081522;
+  --panel:#102131;
+  --panel2:#0c1b29;
+  --line:rgba(140,196,255,.18);
+  --line2:rgba(140,196,255,.09);
+  --text:#e8f0fe;
+  --muted:#8da9c2;
+  --blue:#5fa8ff;
+  --blue2:#8cc4ff;
+  --blue3:#b3d9ff;
+  --green:#6fcf97;
+}
+html{background:var(--bg);scroll-behavior:smooth}
+body{
+  position:relative;
+  overflow-x:hidden;
+  background:
+    radial-gradient(circle at 15% -10%,rgba(95,168,255,.18),transparent 30%),
+    radial-gradient(circle at 100% 25%,rgba(140,196,255,.09),transparent 25%),
+    linear-gradient(180deg,#081522 0%,#091826 48%,#07131f 100%);
+  color:var(--text);
+  padding:22px 18px 70px;
+}
+body::after{
+  content:"";
+  position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.25;
+  background-image:linear-gradient(rgba(140,196,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(140,196,255,.035) 1px,transparent 1px);
+  background-size:34px 34px;
+  mask-image:linear-gradient(to bottom,#000,transparent 85%);
+}
+body::before{
+  content:"PM • OPERATIONS CONSOLE";
+  color:var(--blue3);
+  font-size:11px;font-weight:800;letter-spacing:4px;
+  margin:0 0 10px;opacity:.8;
+  text-shadow:0 0 18px rgba(95,168,255,.55);
+  animation:topFlicker 5s ease-in-out infinite;
+}
+@keyframes topFlicker{0%,100%{opacity:.72}50%{opacity:1}}
+
+h1{
+  max-width:1100px;width:100%;
+  position:relative;
+  margin:0 0 16px;
+  padding:22px 26px 20px 28px;
+  border:1px solid var(--line);
+  border-radius:18px 18px 6px 18px;
+  background:linear-gradient(110deg,rgba(16,33,49,.96),rgba(10,25,39,.94));
+  color:#fff;font-size:clamp(1.45rem,3vw,2.05rem);font-weight:800;
+  letter-spacing:-.7px;
+  box-shadow:0 18px 50px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.04);
+  overflow:hidden;
+}
+h1::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,var(--blue2),var(--blue),transparent);
+  box-shadow:0 0 22px rgba(95,168,255,.55);
+}
+h1::after{content:" / расчёт повышения и недельных отчётов";color:#7796b2;font-weight:500;font-size:.55em;letter-spacing:0}
+
+#statusBar{
+  max-width:1100px;width:100%;
+  margin:0 0 14px;padding:9px 15px;
+  background:rgba(10,25,40,.8);border:1px solid var(--line2);
+  border-radius:7px 15px 7px 15px;box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+#statusBar .dot{width:8px;height:8px;box-shadow:0 0 10px currentColor!important}
+#statusBar .dot.online{background:#6fcf97;color:#6fcf97}
+#statusBar .dot.offline{background:#ff6b6b;color:#ff6b6b}
+#statusBar .save-status.saved{color:var(--blue2)}
+
+.card{
+  position:relative;max-width:1100px;
+  background:linear-gradient(145deg,rgba(16,33,49,.97),rgba(10,24,37,.97));
+  border:1px solid var(--line);border-radius:16px 5px 16px 5px;
+  padding:22px 24px;margin:14px 0;
+  box-shadow:0 15px 42px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.025);
+  overflow:hidden;transform:translateZ(0);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .35s,box-shadow .35s;
+}
+.card::before{
+  content:"";position:absolute;left:0;top:0;width:70px;height:2px;
+  background:linear-gradient(90deg,var(--blue2),transparent);
+  box-shadow:0 0 16px rgba(95,168,255,.55);
+}
+.card::after{
+  content:"";position:absolute;right:-60px;top:-60px;width:140px;height:140px;border-radius:50%;
+  border:1px solid rgba(140,196,255,.05);box-shadow:0 0 0 18px rgba(140,196,255,.015),0 0 0 38px rgba(140,196,255,.01);
+  pointer-events:none;
+}
+.card:hover{transform:translateY(-4px);border-color:rgba(140,196,255,.32);box-shadow:0 22px 58px rgba(0,0,0,.35),0 0 28px rgba(95,168,255,.06)}
+h2{color:var(--blue3);font-weight:750;border-bottom:1px dashed rgba(140,196,255,.15);padding-bottom:11px;margin-bottom:18px}
+
+input,select,textarea{
+  background:#091827;border:1px solid rgba(140,196,255,.22);color:var(--text);
+  border-radius:10px;padding:12px 14px;
+  transition:border-color .25s,box-shadow .25s,transform .2s,background .25s;
+}
+input:hover,select:hover,textarea:hover{border-color:rgba(140,196,255,.5);background:#0b1b2c}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--blue2);
+  box-shadow:0 0 0 3px rgba(95,168,255,.11),0 0 22px rgba(95,168,255,.09);
+  background:#0b1c2e;transform:translateY(-1px)
+}
+select{background-color:#091827!important;color:var(--blue3)!important}
+select option{background:#0b1b2b!important;color:var(--blue3)!important}
+
+input[type="checkbox"]{border-color:rgba(140,196,255,.45);background:#0b1b2b;transition:.25s}
+input[type="checkbox"]:hover{transform:scale(1.08);box-shadow:0 0 15px rgba(95,168,255,.3)}
+input[type="checkbox"]:checked{background:var(--blue);border-color:var(--blue);box-shadow:0 0 14px rgba(95,168,255,.35)}
+.checkbox-group{background:rgba(9,24,39,.75);border:1px solid var(--line2);border-radius:10px;padding:8px 11px}
+
+.table-wrapper{border:1px solid var(--line);border-radius:12px;background:#091725;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+table{border-spacing:0;min-width:650px}
+th{background:#10273a!important;color:var(--blue3)!important;font-size:.72rem!important;letter-spacing:1px;border-bottom:1px solid var(--line)!important}
+td{background:rgba(255,255,255,.018);border-bottom:1px solid rgba(140,196,255,.07)!important}
+tbody tr{transition:transform .2s,background .2s}
+tbody tr:hover{background:rgba(95,168,255,.055)!important;transform:translateX(3px)}
+
+.duty-card{background:linear-gradient(145deg,#0c1d2c,#0a1724)!important;border:1px solid var(--line)!important;border-radius:12px!important;transition:.3s!important}
+.duty-card:hover{transform:translateY(-3px);border-color:rgba(140,196,255,.35)!important;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+.duty-label{color:var(--blue3)!important}.duty-rate{color:#7893ab!important}.duty-points-display{color:var(--blue2)!important;text-shadow:0 0 12px rgba(140,196,255,.18)}
+
+.remark-buttons{gap:9px!important}
+.remark-btn{
+  position:relative;background:#0b1b2a!important;border:1px solid rgba(140,196,255,.2)!important;
+  color:#a8bfd3!important;border-radius:9px!important;overflow:hidden;
+  transition:transform .25s,box-shadow .25s,border-color .25s,background .25s!important;
+}
+.remark-btn::after{content:"";position:absolute;left:-100%;top:0;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transform:skewX(-20deg);transition:left .55s}
+.remark-btn:hover{transform:translateY(-2px)!important;background:#10283b!important;border-color:var(--blue)!important;color:#fff!important;box-shadow:0 8px 24px rgba(0,0,0,.24),0 0 18px rgba(95,168,255,.12)!important}
+.remark-btn:hover::after{left:140%}
+.remark-btn.active{background:linear-gradient(135deg,#5fa8ff,#3d7ec9)!important;border-color:#78b8ff!important;color:#fff!important;box-shadow:0 6px 24px rgba(95,168,255,.28),inset 0 1px 0 rgba(255,255,255,.18)!important;transform:none!important}
+/* Быстрые замечания: первая кнопка не должна подсвечиваться сама по себе */
+.remark-buttons .remark-btn:first-child{background:#0b1b2a!important;border-color:rgba(140,196,255,.2)!important;color:#a8bfd3!important;box-shadow:none!important;transform:none!important}
+.remark-buttons .remark-btn:first-child:hover{background:#10283b!important;border-color:var(--blue)!important;color:#fff!important;box-shadow:0 8px 24px rgba(0,0,0,.24),0 0 18px rgba(95,168,255,.12)!important;transform:translateY(-2px)!important}
+.remark-buttons .remark-btn:first-child.active{background:linear-gradient(135deg,#5fa8ff,#3d7ec9)!important;border-color:#78b8ff!important;color:#fff!important;box-shadow:0 6px 24px rgba(95,168,255,.28),inset 0 1px 0 rgba(255,255,255,.18)!important;transform:none!important}
+
+.progress{background:#07131f;box-shadow:inset 0 2px 7px rgba(0,0,0,.45);height:20px}
+.fill{background:linear-gradient(90deg,#3f8fe8,#8cc4ff,#5fa8ff);background-size:200% 100%;animation:progressFlow 3s linear infinite;box-shadow:0 0 16px rgba(95,168,255,.38)}
+@keyframes progressFlow{to{background-position:200% 0}}
+
+.btn-group{gap:10px}
+button{
+  position:relative;overflow:hidden;border-radius:10px!important;
+  background:linear-gradient(135deg,#17344d,#11283c)!important;
+  border:1px solid rgba(140,196,255,.25)!important;color:#eaf4ff!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)!important;
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .3s,border-color .25s,background .25s!important;
+}
+button::before{
+  content:"";position:absolute;top:0;left:-120%;width:70%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);transform:skewX(-22deg);transition:left .6s ease
+}
+button:hover{transform:translateY(-3px)!important;background:linear-gradient(135deg,#204766,#173750)!important;border-color:var(--blue2)!important;box-shadow:0 10px 30px rgba(0,0,0,.3),0 0 22px rgba(95,168,255,.22)!important}
+button:hover::before{left:150%}
+button:active{transform:translateY(1px) scale(.98)!important;box-shadow:0 3px 10px rgba(0,0,0,.25)!important}
+button:first-child{background:linear-gradient(135deg,#5fa8ff,#3d7ec9)!important;border-color:#78b8ff!important;color:#fff!important;box-shadow:0 6px 24px rgba(95,168,255,.28),inset 0 1px 0 rgba(255,255,255,.18)!important}
+button:first-child:hover{background:linear-gradient(135deg,#79bdff,#4d91dd)!important;box-shadow:0 12px 34px rgba(95,168,255,.42),0 0 20px rgba(140,196,255,.25)!important}
+.btn-success{background:linear-gradient(135deg,#6fcf97,#2eae72)!important;border-color:#6fcf97!important;box-shadow:0 0 28px rgba(111,207,151,.28)!important}
+
+textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;box-shadow:inset 0 2px 12px rgba(0,0,0,.25)}
+#visualReport{
+  background:linear-gradient(145deg,#0d1d2b,#091621);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 18px 45px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.025)
+}
+.report-category{background:rgba(15,34,51,.72);border:1px solid rgba(140,196,255,.08);border-left:3px solid #4b88c9;border-radius:9px;transition:.25s}
+.report-category:hover{background:#10283b;transform:translateX(3px)}
+.report-total{background:linear-gradient(135deg,rgba(95,168,255,.12),rgba(140,196,255,.035));border-color:rgba(140,196,255,.2);box-shadow:0 0 28px rgba(95,168,255,.05)}
+.report-total span{color:var(--blue2);text-shadow:0 0 15px rgba(140,196,255,.3)}
+#offlineNotification{background:rgba(75,31,40,.96);border:1px solid rgba(255,107,107,.25)}
+#version{color:rgba(140,196,255,.28)}
+
+@media(max-width:768px){body{padding:16px 10px 55px}h1{padding:19px 20px}.card{padding:18px 16px}.card:hover{transform:none}}
+@media(max-width:500px){button{width:100%}.remark-buttons{grid-template-columns:1fr}.card{border-radius:13px 4px 13px 4px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+
+<style id="finishing-touch-v6">
+/* ===== Финальный штрих: компактная таблица + живые микроэффекты ===== */
+.table-wrapper{
+  overflow:hidden !important;
+  scrollbar-width:none !important;
+  -ms-overflow-style:none !important;
+  position:relative;
+}
+.table-wrapper::-webkit-scrollbar{display:none !important;width:0;height:0}
+#tbl{
+  width:100% !important;
+  min-width:0 !important;
+  table-layout:fixed !important;
+}
+#tbl th:nth-child(1),#tbl td:nth-child(1){width:24%}
+#tbl th:nth-child(2),#tbl td:nth-child(2){width:22%}
+#tbl th:nth-child(3),#tbl td:nth-child(3){width:22%}
+#tbl th:nth-child(4),#tbl td:nth-child(4){width:10%}
+#tbl th:nth-child(5),#tbl td:nth-child(5){width:11%}
+#tbl th:nth-child(6),#tbl td:nth-child(6){width:11%}
+#tbl td input:not(.bodi-input){width:100% !important;min-width:0 !important}
+#tbl .bodi-input{width:100% !important;min-width:0 !important}
+#tbl th,#tbl td{overflow:hidden;text-overflow:ellipsis}
+#tbl td:first-child{white-space:nowrap}
+
+/* Маленький индикатор "живого" расчёта */
+.card:has(#tbl) h2{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card:has(#tbl) h2::after{
+  content:'● LIVE CALC';
+  flex:0 0 auto;
+  font-size:.62rem;
+  letter-spacing:1.4px;
+  color:#8cc4ff;
+  padding:5px 9px;
+  border:1px solid rgba(140,196,255,.2);
+  border-radius:999px;
+  background:rgba(95,168,255,.06);
+  box-shadow:0 0 16px rgba(95,168,255,.08);
+  animation:livePulse 2.4s ease-in-out infinite;
+}
+@keyframes livePulse{0%,100%{opacity:.55;box-shadow:0 0 10px rgba(95,168,255,.05)}50%{opacity:1;box-shadow:0 0 20px rgba(95,168,255,.2)}}
+
+/* Строка мягко подсвечивается, когда в ней что-то вводят */
+#tbl tbody tr.row-active td{
+  background:rgba(95,168,255,.09) !important;
+  border-bottom-color:rgba(140,196,255,.2) !important;
+}
+#tbl tbody tr.row-active td:first-child{box-shadow:inset 3px 0 0 #5fa8ff}
+#tbl tbody tr.row-flash{animation:rowFlash .55s ease-out}
+@keyframes rowFlash{0%{filter:brightness(1.35)}100%{filter:brightness(1)}}
+
+/* Чуть более приятная микровзаимодействие для итоговых чисел */
+#tbl .acc,#tbl .pts{transition:transform .22s,color .22s,text-shadow .22s}
+#tbl tbody tr.row-active .acc,#tbl tbody tr.row-active .pts{
+  transform:scale(1.04);
+  color:#b3d9ff !important;
+  text-shadow:0 0 12px rgba(140,196,255,.28);
+}
+
+/* Небольшой блик по контейнеру таблицы при наведении */
+.table-wrapper::after{
+  content:"";position:absolute;top:0;bottom:0;left:-35%;width:18%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.045),transparent);
+  transform:skewX(-18deg);transition:left .8s ease;
+}
+.table-wrapper:hover::after{left:125%}
+
+@media(max-width:700px){
+  #tbl th,#tbl td{padding:7px 5px;font-size:.78rem}
+  #tbl th{font-size:.62rem !important;letter-spacing:.5px}
+  #tbl td:first-child{font-size:.76rem}
+  .card:has(#tbl) h2::after{font-size:.55rem;padding:4px 7px}
+}
+@media(prefers-reduced-motion:reduce){.card:has(#tbl) h2::after{animation:none}.table-wrapper::after{display:none}}
+</style>
+
+</head>
+<body>
+
+    <!-- СТАТУС БАР -->
+    <div id="statusBar">
+        <div class="online-status">
+            <span class="dot online" id="statusDot"></span>
+            <span id="statusText">Online</span>
+        </div>
+        <div class="save-status" id="saveStatus">💾 Данные сохранены</div>
+    </div>
+
+    <!-- Offline уведомление -->
+    <div id="offlineNotification">📶 Вы оффлайн. Данные сохранятся локально и синхронизируются при подключении.</div>
+
+    <h1>Центр контроля медицинских отчётов</h1>
+
+    <!-- Сотрудник -->
+    <div class="card">
+        <h2>👤 Сотрудник</h2>
+        <div class="grid">
+            <input id="fullname" placeholder="Имя Фамилия">
+            <input id="static" placeholder="Статик">
+            <div id="seniority-group" class="hidden">
+                <input id="seniority" placeholder="Выслуга лет">
+            </div>
+            <div id="join-date-group" class="hidden">
+                <input id="joinDate" type="date" value="">
+            </div>
+            <select id="promo">
+                <option value="3→4" selected="">3→4</option>
+                <option value="4→5">4→5</option>
+                <option value="5→6">5→6</option>
+                <option value="6→7">6→7</option>
+                <option value="7→8">7→8</option>
+                <option value="8→9">8→9</option>
+                <option value="9→10">9→10</option>
+                <option value="Недельный отчет">Недельный отчет</option>
+            </select>
+        </div>
+<div id="penalty-group" style="margin-top:12px;">
+            <b>⚠️ Взыскания:</b>
+            <div class="penalty-row">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="penalty13">
+                    <label for="penalty13" class="label-text">🔴 1/3</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="penalty23">
+                    <label for="penalty23" class="label-text">🔴 2/3</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Объединённый блок: Бот не работает + Повышение после 00:00 -->
+        <div id="botNotWorking-group" style="margin-top:12px; display:flex; gap:20px; flex-wrap:wrap;">
+            <div class="checkbox-group">
+                <input type="checkbox" id="botNotWorking">
+                <label for="botNotWorking" class="label-text">🤖 Бот не работает</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="promoAfterMidnight">
+                <label for="promoAfterMidnight" class="label-text">🌙 Повышение после 00:00</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Действия -->
+    <div class="card">
+        <h2>📋 Действия</h2>
+        <div class="table-wrapper">
+            <table id="tbl">
+                <thead>
+                    <tr>
+                        <th>Действие</th>
+                        <th>Заявлено</th>
+                        <th>Не принято</th>
+                        <th>Без боди</th>
+                        <th>Принято</th>
+                        <th>Баллы</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div style="margin-top:14px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <label for="extra" style="color:#b3d9ff; font-weight:500;">⭐ Дополнительные баллы:</label>
+            <input id="extra" type="number" value="0" min="0" style="width:120px; padding:8px 12px;">
+            <span style="color:#8899aa; font-size:0.9rem;">(прибавится к итогу)</span>
+        </div>
+        <div style="margin-top:8px; color:#b0cce8; font-size:0.85rem;">
+            <i>📌 Если суммарно наберется более 5 скриншотов без боди-камеры, отчет будет отклонен.</i>
+        </div>
+    </div>
+
+    <!-- Замены и замечания -->
+    <div class="card">
+        <h2>🔄 Замены</h2>
+        <div id="replacements-grid" class="grid">
+            <div><label>💉 Вакцины → 🚑 ПМП</label><input id="vacToPmp" type="number" value="0" min="0"></div>
+            <div><label>🚑 ПМП → 💉 Вакцины (5 ПМП = 1 вакцина)</label><input id="pmpToVac" type="number" value="0" min="0"></div>
+        </div>
+
+        <div style="margin-top:10px">
+            <label>📝 Замечания</label>
+            <textarea id="remarks" rows="4"></textarea>
+        </div>
+
+        <div style="margin-top:8px;">
+            <div style="color:#b0cce8; font-size:0.9rem; margin-bottom:6px;">🔖 Быстрые замечания:</div>
+            <div class="remark-buttons" id="remarkButtons"></div>
+        </div>
+    </div>
+
+    <!-- ===== НОВЫЙ БЛОК: ДЕЖУРСТВА В БОЛЬНИЦАХ ===== -->
+    <div class="card">
+        <h2>🏥 Дежурства в больницах</h2>
+        <div class="grid grid-3" id="dutyGrid">
+            <div class="duty-card">
+                <span class="duty-label">🏥 ELSH</span>
+                <input id="dutyElsh" type="number" value="0" min="0" placeholder="минуты">
+                <span class="duty-rate">10 баллов за 30 минут</span>
+                <div class="duty-points-display" id="dutyElshPoints">0 баллов</div>
+            </div>
+            <div class="duty-card">
+                <span class="duty-label">🏥 PB</span>
+                <input id="dutyPb" type="number" value="0" min="0" placeholder="минуты">
+                <span class="duty-rate">15 баллов за 30 минут</span>
+                <div class="duty-points-display" id="dutyPbPoints">0 баллов</div>
+            </div>
+            <div class="duty-card">
+                <span class="duty-label">🏥 SH</span>
+                <input id="dutySh" type="number" value="0" min="0" placeholder="минуты">
+                <span class="duty-rate">15 баллов за 30 минут</span>
+                <div class="duty-points-display" id="dutyShPoints">0 баллов</div>
+            </div>
+        </div>
+        <div style="margin-top:12px; color:#b0cce8; font-size:0.9rem; text-align:center;" id="dutyTotalDisplay">
+            ⭐ Всего за дежурства: <strong id="dutyTotalPoints">0</strong> баллов
+        </div>
+    </div>
+
+    <!-- Отчёт -->
+    <div class="card">
+        <div class="btn-group">
+            <button onclick="generateReport()">📄 Сформировать отчёт</button>
+            <button id="copyBtn" onclick="copyReport()">📋 Копировать отчёт</button>
+            <button onclick="resetForm()">🔄 Сбросить</button>
+        </div>
+
+        <div id="visualReport"></div>
+        <textarea id="out" rows="18"></textarea>
+    </div>
+
+    <div id="version">v3.6 (обновлены нормы повышения)</div>
+
+    <script>
+        // ============================================================
+        //  DATA — НОРМЫ ПОВЫШЕНИЯ
+        // ============================================================
+        const ACTIONS = [
+            { name: '☀️ ПМП день', points: 2 },
+            { name: '🌙 ПМП ночь', points: 3 },
+            { name: '🚫 Отмена вызова', points: 1 },
+            { name: '🏙️ Вакцинация город', points: 3 },
+            { name: '🌍 Вакцинация округ', points: 4 },
+            { name: '📋 Медицинские справки', points: 3 },
+            { name: '💊 Таблетки', points: 1 }
+        ];
+
+        const NORMS = {
+            '3→4': { points: 0, pmp: 999, vac: 999 },
+            '4→5': { points: 0, pmp: 30, vac: 5 },
+            '5→6': { points: 150, pmp: 40, vac: 5 },
+            '6→7': { points: 200, pmp: 50, vac: 5 },
+            '7→8': { points: 250, pmp: 60, vac: 5 },
+            '8→9': { points: 300, pmp: 70, vac: 5 },
+            '9→10': { points: 350, pmp: 80, vac: 5 },
+            'Недельный отчет': { points: 300, pmp: 0, vac: 0 }
+        };
+
+        const REMARK_BUTTONS = [
+            { text: '- ПМП выполненные на территории больниц и в палатах в зачет нормы не идут', label: '🏥 ПМП в больницах' },
+            { text: '- При заполнении отчета не трогайте не задействованные строчки (не нужно ставить прочерки)',
+                label: '📄 Не трогать строчки' },
+            { text: '- В последующих отчетах разделяйте ПМП сделанные в дневное и ночное время в разные папки',
+                label: '📁 Разделять ПМП' },
+            { text: '- Фарм баллов (более 5 скриншотов с одного места (например, если перестрелка, или они Фармят пропуск и тд. 5 скриншотов будет принято, остальные отклонены; реанимация гражданина с одним и тем же статиком более 2-х раз)', label: '⚠️ Фарм-баллов' },
+            { text: '- В последующих отчетах разделяйте вакцинации сделанные в PB/SH и ELS в разные папки',
+                label: '💉 Разделять вакцинации' },
+            { text: '- Скриншоты, сделанные до вашего последнего повышения, в зачет не идут', label: '📸 Скриншоты до повышения' },
+            { text: '- Много ПМП выполнено с выключенной боди-камерой', label: '🎥 Без боди-камеры' },
+            { text: '- Когда делаете скриншот вакцины делайте в кабинете, не выходя в коридор', label: '💉 Скриншот вне кабинета' },
+            { text: '- У вас есть активное взыскание, при активном взыскании премия не дается', label: '⚠️ WARN (взыскание)' }
+        ];
+
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const qs = (sel, ctx = document) => ctx.querySelector(sel);
+        const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+        const fullname = $('fullname');
+        const staticId = $('static');
+        const seniority = $('seniority');
+        const joinDate = $('joinDate');
+        const promo = $('promo');
+        const penalty13 = $('penalty13');
+        const penalty23 = $('penalty23');
+        const botNotWorking = $('botNotWorking');
+        const vacToPmp = $('vacToPmp');
+        const pmpToVac = $('pmpToVac');
+        const extra = $('extra');
+        const remarks = $('remarks');
+        const out = $('out');
+        const tableBody = $('tableBody');
+        const visualReport = $('visualReport');
+        const copyBtn = $('copyBtn');
+        const statusDot = $('statusDot');
+        const statusText = $('statusText');
+        const saveStatus = $('saveStatus');
+        const offlineNotification = $('offlineNotification');
+        const promoAfterMidnight = $('promoAfterMidnight');
+
+        // Duty inputs
+        const dutyElsh = $('dutyElsh');
+        const dutyPb = $('dutyPb');
+        const dutySh = $('dutySh');
+        const dutyElshPoints = $('dutyElshPoints');
+        const dutyPbPoints = $('dutyPbPoints');
+        const dutyShPoints = $('dutyShPoints');
+        const dutyTotalPoints = $('dutyTotalPoints');
+
+        // ============================================================
+        //  OFFLINE / ONLINE МЕНЕДЖЕР
+        // ============================================================
+        let isOnline = navigator.onLine;
+
+        function updateOnlineStatus() {
+            isOnline = navigator.onLine;
+            if (isOnline) {
+                statusDot.className = 'dot online';
+                statusText.textContent = 'Online';
+                offlineNotification.classList.remove('show');
+                syncOfflineData();
+            } else {
+                statusDot.className = 'dot offline';
+                statusText.textContent = 'Offline';
+                offlineNotification.classList.add('show');
+            }
+        }
+
+        let offlineQueue = [];
+
+        function syncOfflineData() {
+            if (isOnline && offlineQueue.length > 0) {
+                console.log('🔄 Синхронизация оффлайн данных:', offlineQueue);
+                offlineQueue = [];
+                updateSaveStatus('✅ Данные синхронизированы');
+            }
+        }
+
+        window.addEventListener('online', () => {
+            updateOnlineStatus();
+            updateSaveStatus('🔄 Синхронизация...');
+            setTimeout(() => updateSaveStatus('💾 Данные сохранены'), 1000);
+        });
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // ============================================================
+        //  СОХРАНЕНИЕ СОСТОЯНИЯ
+        // ============================================================
+        let saveTimeout = null;
+        let lastSavedState = '';
+
+        function captureState() {
+            const tableInputs = qsa('#tbl input').map(inp => inp.value);
+            return {
+                fullname: fullname.value,
+                static: staticId.value,
+                seniority: seniority.value,
+                joinDate: joinDate.value,
+                promo: promo.value,
+                penalty13: penalty13.checked,
+                penalty23: penalty23.checked,
+                botNotWorking: botNotWorking.checked,
+                vacToPmp: vacToPmp.value,
+                pmpToVac: pmpToVac.value,
+                extra: extra.value,
+                remarks: remarks.value,
+                promoAfterMidnight: promoAfterMidnight.checked,
+                dutyElsh: dutyElsh.value,
+                dutyPb: dutyPb.value,
+                dutySh: dutySh.value,
+                tableInputs: tableInputs,
+                timestamp: Date.now()
+            };
+        }
+
+        function restoreState(state) {
+            if (!state) return;
+            fullname.value = state.fullname || '';
+            staticId.value = state.static || '';
+            seniority.value = state.seniority || '';
+            joinDate.value = state.joinDate || '';
+            promo.value = state.promo || '3→4';
+            penalty13.checked = state.penalty13 || false;
+            penalty23.checked = state.penalty23 || false;
+            botNotWorking.checked = state.botNotWorking || false;
+            vacToPmp.value = state.vacToPmp || 0;
+            pmpToVac.value = state.pmpToVac || 0;
+            extra.value = state.extra || 0;
+            remarks.value = state.remarks || '';
+            promoAfterMidnight.checked = state.promoAfterMidnight || false;
+            dutyElsh.value = state.dutyElsh || 0;
+            dutyPb.value = state.dutyPb || 0;
+            dutySh.value = state.dutySh || 0;
+
+            const inputs = qsa('#tbl input');
+            if (state.tableInputs && state.tableInputs.length === inputs.length) {
+                inputs.forEach((inp, i) => {
+                    inp.value = state.tableInputs[i] || 0;
+                });
+            }
+            toggleVisibility();
+            updateAll();
+        }
+
+        function saveState() {
+            const state = captureState();
+            const stateStr = JSON.stringify(state);
+
+            if (stateStr === lastSavedState) return;
+
+            try {
+                localStorage.setItem('pmCalculatorState', stateStr);
+                lastSavedState = stateStr;
+                updateSaveStatus('💾 Сохранено');
+            } catch (e) {
+                console.warn('Не удалось сохранить данные:', e);
+                updateSaveStatus('⚠️ Ошибка сохранения');
+            }
+        }
+
+        function updateSaveStatus(text) {
+            saveStatus.textContent = text;
+            saveStatus.classList.toggle('saved', text.includes('Сохранено') || text.includes('синхронизированы'));
+        }
+
+        function debounceSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveState, 1000);
+        }
+
+        // ============================================================
+        //  TABLE RENDER
+        // ============================================================
+        function renderTable() {
+            tableBody.innerHTML = ACTIONS.map((a, i) => `
+                    <tr data-i="${i}">
+                        <td>${a.name}</td>
+                        <td><input type="number" value="0" class="t" min="0"></td>
+                        <td><input type="number" value="0" class="r" min="0"></td>
+                        <td><input type="number" value="0" class="bodi-input" min="0" style="width:60px;text-align:center;"></td>
+                        <td class="acc">0</td>
+                        <td class="pts">0</td>
+                    </tr>
+                `).join('');
+
+            qsa('#tbl input').forEach(inp => {
+                inp.addEventListener('input', () => {
+                    debounceSave();
+                    updateAll();
+                });
+            });
+        }
+
+        // ============================================================
+        //  REMARK BUTTONS
+        // ============================================================
+        function renderRemarkButtons() {
+            const container = $('remarkButtons');
+            container.innerHTML = REMARK_BUTTONS.map(b => `
+                    <button type="button" class="remark-btn" data-text="${b.text}">${b.label}</button>
+                `).join('');
+
+            container.querySelectorAll('.remark-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const text = this.dataset.text;
+                    const lines = remarks.value.split('\n').filter(l => l.trim());
+                    const idx = lines.indexOf(text);
+                    if (idx === -1) {
+                        lines.push(text);
+                        this.classList.add('active');
+                    } else {
+                        lines.splice(idx, 1);
+                        this.classList.remove('active');
+                    }
+                    remarks.value = lines.join('\n');
+                    remarks.dispatchEvent(new Event('input'));
+                    debounceSave();
+                    updateAll();
+                });
+            });
+        }
+
+        // ============================================================
+        //  STATE & CALC
+        // ============================================================
+        function isWeekly() {
+            return promo.value === 'Недельный отчет';
+        }
+
+        function getNorm() {
+            return NORMS[promo.value] || NORMS['3→4'];
+        }
+
+        function getBodiTotal() {
+            return qsa('.bodi-input').reduce((sum, inp) => sum + (+inp.value || 0), 0);
+        }
+
+        function calcDutyPoints() {
+            const e = +dutyElsh.value || 0;
+            const p = +dutyPb.value || 0;
+            const s = +dutySh.value || 0;
+            // за каждые 30 минут: ELSH 10, PB 15, SH 15
+            const ptsE = Math.floor(e / 30) * 10;
+            const ptsP = Math.floor(p / 30) * 15;
+            const ptsS = Math.floor(s / 30) * 15;
+            return { elsMinutes: e, pbMinutes: p, shMinutes: s, ptsE, ptsP, ptsS, total: ptsE + ptsP + ptsS };
+        }
+
+        function calcResults() {
+            const rows = qsa('#tbl tbody tr');
+            const actions = ACTIONS;
+            let points = 0,
+                pmp = 0,
+                vac = 0,
+                hasError = false;
+
+            rows.forEach((row, i) => {
+                const t = +row.querySelector('.t').value || 0;
+                const r = +row.querySelector('.r').value || 0;
+                if (r > t) hasError = true;
+                const accepted = Math.max(0, t - r);
+                const pts = accepted * actions[i].points;
+                points += pts;
+                if (i === 0 || i === 1) pmp += accepted;
+                if (i === 3 || i === 4) vac += accepted;
+                row.querySelector('.acc').textContent = accepted;
+                row.querySelector('.pts').textContent = pts;
+                row.classList.toggle('error', r > t);
+            });
+
+            const vp = +vacToPmp.value || 0;
+            const pv = +pmpToVac.value || 0;
+            const vacFromPmp = Math.floor(pv / 5);
+            vac += vacFromPmp;
+            points += vacFromPmp * 3;
+            pmp += vp;
+            points += vp * 2;
+
+            // ---- ДЕЖУРСТВА ----
+            const duty = calcDutyPoints();
+            points += duty.total;
+
+            points += +extra.value || 0;
+
+            const norm = getNorm();
+            return { points, pmp, vac, hasError, norm, totalBodi: getBodiTotal(), duty };
+        }
+
+        function getFailures(result) {
+            const { points, pmp, vac, hasError, norm, totalBodi } = result;
+            const isWeek = isWeekly();
+            const failures = [];
+
+            if (!staticId.value.trim()) failures.push('Не указан статический ID персонажа');
+
+            if (isWeek) {
+                if (!joinDate.value) failures.push('Не указана дата вступления во фракцию');
+                if (points < 300) failures.push(`Недостаточно баллов (минимум 300)`);
+                if (totalBodi > 5) failures.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
+                return failures;
+            }
+
+            if (penalty13.checked || penalty23.checked) failures.push('Имеются активные взыскания');
+            if (hasError) failures.push('Ошибки в таблице (заявлено меньше, чем не принято)');
+            if (points < norm.points) failures.push(`Недостаточно баллов (минимум ${norm.points})`);
+            if (pmp < norm.pmp) failures.push(`Недостаточно ПМП (нужно ${norm.pmp})`);
+            if (vac < norm.vac) failures.push(`Недостаточно вакцинаций (нужно ${norm.vac})`);
+            if (totalBodi > 5) failures.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
+
+            return failures;
+        }
+
+        // ============================================================
+        //  RENDER DASHBOARD
+        // ============================================================
+        function renderDashboard() {
+            const result = calcResults();
+            const isWeek = isWeekly();
+            const failures = getFailures(result);
+            const verdictOk = failures.length === 0 && staticId.value.trim() && (isWeek ? true : !penalty13
+                .checked && !penalty23.checked);
+            const { points, pmp, vac, norm, totalBodi, duty } = result;
+
+            // Обновляем отображение очков за дежурства
+            dutyElshPoints.textContent = `${duty.ptsE} баллов`;
+            dutyPbPoints.textContent = `${duty.ptsP} баллов`;
+            dutyShPoints.textContent = `${duty.ptsS} баллов`;
+            dutyTotalPoints.textContent = duty.total;
+
+            let html = '';
+
+            html += `<div class="report-header">
+                    <div class="name">${fullname.value || '—'}</div>
+                    <div class="static">${staticId.value ? 'Статик: ' + staticId.value : '—'}</div>
+                </div>`;
+
+            if (isWeek) {
+                html += `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📋 Недельный отчёт</div>`;
+                if (joinDate.value) {
+                    const dateObj = new Date(joinDate.value + 'T00:00:00');
+                    const formattedDate = dateObj.toLocaleDateString('ru-RU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                    html +=
+                        `<div class="report-category"><span class="label">📅 Дата вступления</span><span class="value">${formattedDate}</span></div>`;
+                }
+                html += `<div class="report-category"><span class="label">⭐ Баллы</span><span class="value">${points}</span></div>`;
+                const rows = qsa('#tbl tbody tr');
+                html +=
+                    `<div class="report-category"><span class="label">☀️ ПМП день</span><span class="value">${rows[0]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🌙 ПМП ночь</span><span class="value">${rows[1]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${rows[3]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${rows[4]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">💊 Таблетки</span><span class="value">${rows[6]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
+
+                // Дежурства в недельном отчёте
+                if (duty.total > 0) {
+                    html += `<div class="report-category" style="border-left-color:#f1c40f;">
+                            <span class="label">🏥 Дежурства (всего)</span>
+                            <span class="value">${duty.total} баллов</span>
+                        </div>`;
+                    html += `<div style="margin:4px 0 12px 0; display:flex; flex-wrap:wrap; gap:6px 16px; font-size:0.85rem; color:#b0cce8; background:rgba(255,255,255,0.03); padding:8px 14px; border-radius:12px;">
+                            <span>ELSH: ${duty.ptsE} (${duty.elsMinutes} мин)</span>
+                            <span>PB: ${duty.ptsP} (${duty.pbMinutes} мин)</span>
+                            <span>SH: ${duty.ptsS} (${duty.shMinutes} мин)</span>
+                        </div>`;
+                }
+
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) {
+                    html +=
+                        `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                }
+                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${points}</span></div>`;
+                if (!verdictOk && failures.length > 0) {
+                    html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
+                    failures.forEach(f => { html += `<li>${f}</li>`; });
+                    html += `</ul></div>`;
+                } else if (verdictOk) {
+                    html += `<div class="report-ok">✅ Отчёт одобрен</div>`;
+                }
+            } else {
+                html +=
+                    `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📈 Повышение: ${promo.value}</div>`;
+html +=
+                    `<div class="report-category"><span class="label">🤖 Бот не работает</span><span class="value">${botNotWorking.checked ? '✅ Да' : '❌ Нет'}</span></div>`;
+
+                const ptsPct = Math.min(100, norm.points ? (points / norm.points) * 100 : 0);
+                const pmpPct = Math.min(100, norm.pmp ? (pmp / norm.pmp) * 100 : 0);
+                const vacPct = Math.min(100, norm.vac ? (vac / norm.vac) * 100 : 0);
+
+                html += `<div style="margin:16px 0;">`;
+                html +=
+                    `<div class="progress-label"><span>⭐ Баллы</span><span class="val">${points} / ${norm.points}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${ptsPct}%;"></div></div>`;
+                html +=
+                    `<div class="progress-label"><span>🚑 ПМП</span><span class="val">${pmp} / ${norm.pmp}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${pmpPct}%;"></div></div>`;
+                html +=
+                    `<div class="progress-label"><span>💉 Вакцинации</span><span class="val">${vac} / ${norm.vac}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
+                html += `<div class="report-category"><span class="label">💊 Таблетки</span><span class="value">${qsa('#tbl tbody tr')[6]?.querySelector('.acc')?.textContent || 0} шт. / ${qsa('#tbl tbody tr')[6]?.querySelector('.pts')?.textContent || 0} баллов</span></div>`;
+                html += `</div>`;
+
+                // Дежурства
+                if (duty.total > 0) {
+                    html += `<div class="report-category" style="border-left-color:#f1c40f;">
+                            <span class="label">🏥 Дежурства (всего)</span>
+                            <span class="value">${duty.total} баллов</span>
+                        </div>`;
+                    html += `<div style="margin:4px 0 12px 0; display:flex; flex-wrap:wrap; gap:6px 16px; font-size:0.85rem; color:#b0cce8; background:rgba(255,255,255,0.03); padding:8px 14px; border-radius:12px;">
+                            <span>ELSH: ${duty.ptsE} (${duty.elsMinutes} мин)</span>
+                            <span>PB: ${duty.ptsP} (${duty.pbMinutes} мин)</span>
+                            <span>SH: ${duty.ptsS} (${duty.shMinutes} мин)</span>
+                        </div>`;
+                }
+
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) {
+                    html +=
+                        `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                }
+
+                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${points}</span></div>`;
+
+                if (verdictOk) {
+                    html += `<div class="report-ok">✅ Отчёт одобрен — можно подавать заявление на повышение</div>`;
+                } else if (failures.length > 0) {
+                    html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
+                    failures.forEach(f => { html += `<li>${f}</li>`; });
+                    html += `</ul></div>`;
+                }
+            }
+
+            const remarksText = remarks.value.trim();
+            if (remarksText) {
+                html += `<div class="report-remarks"><strong>📝 Замечания:</strong> ${remarksText}</div>`;
+            }
+
+            visualReport.innerHTML = html;
+        }
+
+        // ============================================================
+        //  GENERATE REPORT TEXT — ОБНОВЛЁННАЯ ВЕРСИЯ БЕЗ СМАЙЛИКОВ И С СУММАРНЫМИ ДЕЖУРСТВАМИ
+        // ============================================================
+        window.generateReport = function() {
+            const result = calcResults();
+            const isWeek = isWeekly();
+            const failures = getFailures(result);
+            const verdictOk = failures.length === 0 && staticId.value.trim() && (isWeek ? true : !penalty13
+                .checked && !penalty23.checked);
+            const { points, pmp, vac, norm, totalBodi, duty } = result;
+            const rows = qsa('#tbl tbody tr');
+
+            let lines = [];
+            const name = fullname.value.trim() || '—';
+            const stat = staticId.value.trim() || '—';
+
+            lines.push(`*** Работник: *** *${name}*`);
+            lines.push(`*** Статик: *** *${stat}*`);
+
+            if (isWeek) {
+                let dateStr = '—';
+                if (joinDate.value) {
+                    const dateObj = new Date(joinDate.value + 'T00:00:00');
+                    dateStr = dateObj.toLocaleDateString('ru-RU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                }
+                lines.push(`*** Дата вступления: *** *${dateStr}*`);
+                lines.push('# Недельный отчет #');
+                lines.push('');
+                lines.push(`## Баллы: ${points} ##`);
+                lines.push(`> ПМП день: ${rows[0]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> ПМП ночь: ${rows[1]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Вакцинации город: ${rows[3]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Вакцинации округ: ${rows[4]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Таблетки: ${rows[6]?.querySelector('.acc')?.textContent || 0}`);
+                // Дежурства — только общая сумма
+                if (duty.total > 0) {
+                    lines.push(`> Дежурства: ${duty.total} баллов`);
+                }
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) lines.push(`> Доп. баллы: ${extraVal}`);
+                lines.push('');
+                lines.push(verdictOk ? '# ОТЧЁТ ОДОБРЕН #' : '# ОТЧЁТ ОТКЛОНЁН #');
+                if (!verdictOk && failures.length > 0) {
+                    lines.push('');
+                    failures.forEach(f => lines.push('• ' + f));
+                }
+            } else {
+                lines.push(`*** Повышение: *** *${promo.value}*`);
+                lines.push('');
+                lines.push(`> Баллы: ${points}/${norm.points}`);
+                lines.push(`> ПМП: ${pmp}/${norm.pmp}`);
+                lines.push(`> Вакцинации: ${vac}/${norm.vac}`);
+                lines.push(`> Таблетки: ${rows[6]?.querySelector('.acc')?.textContent || 0}`);
+                // Дежурства — только общая сумма
+                if (duty.total > 0) {
+                    lines.push(`> Дежурства: ${duty.total} баллов`);
+                }
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) lines.push(`> Доп. баллы: ${extraVal}`);
+                lines.push('');
+lines.push('');
+
+                if (verdictOk) {
+                    lines.push('# ОТЧЁТ ОДОБРЕН #');
+                    lines.push('');
+                    const rank = promo.value.split("→")[1] || "";
+                    const link = 'https://discord.com/channels/1482048390119555123/1550132611970764891';
+                    if (promoAfterMidnight.checked) {
+                        lines.push(`*Для повышения на ${rank} ранг заполните заявление после 00:00 на повышение в канале* ${link}`);
+                    } else {
+                        lines.push(`*Для повышения на ${rank} ранг заполните заявление на повышение в канале* ${link}`);
+                    }
+                } else {
+                    lines.push('# ОТЧЁТ ОТКЛОНЁН #');
+                    lines.push('');
+                    if (failures.length > 0) {
+                        failures.forEach(f => lines.push('• ' + f));
+                    }
+                }
+            }
+
+            const remarksText = remarks.value.trim();
+            if (remarksText) {
+                lines.push('');
+                lines.push('```Замечания:');
+                lines.push(remarksText);
+                lines.push('```');
+            }
+
+            out.value = lines.join('\n');
+            renderDashboard();
+            saveState();
+        };
+
+        // ============================================================
+        //  COPY REPORT
+        // ============================================================
+        window.copyReport = function() {
+            if (!out.value) generateReport();
+            navigator.clipboard.writeText(out.value).then(() => {
+                copyBtn.classList.add('btn-success');
+                copyBtn.textContent = '✅ Скопировано!';
+                setTimeout(() => {
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.textContent = '📋 Копировать отчёт';
+                }, 1200);
+            }).catch(() => {
+                copyBtn.textContent = '❌ Ошибка';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Копировать отчёт';
+                }, 1200);
+            });
+        };
+
+        // ============================================================
+        //  RESET
+        // ============================================================
+        window.resetForm = function() {
+            fullname.value = '';
+            staticId.value = '';
+            seniority.value = '';
+            joinDate.value = '';
+            promo.value = '3→4';
+            penalty13.checked = false;
+            penalty23.checked = false;
+            botNotWorking.checked = false;
+            vacToPmp.value = 0;
+            pmpToVac.value = 0;
+            extra.value = 0;
+            remarks.value = '';
+            out.value = '';
+            promoAfterMidnight.checked = false;
+            dutyElsh.value = 0;
+            dutyPb.value = 0;
+            dutySh.value = 0;
+
+            qsa('#tbl input').forEach(inp => {
+                inp.value = 0;
+            });
+            qsa('#tbl .acc').forEach(el => el.textContent = '0');
+            qsa('#tbl .pts').forEach(el => el.textContent = '0');
+            qsa('#tbl tr').forEach(tr => tr.classList.remove('error'));
+
+            qsa('.remark-btn').forEach(btn => btn.classList.remove('active'));
+            toggleVisibility();
+            updateAll();
+            saveState();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // ============================================================
+        //  TOGGLE VISIBILITY
+        // ============================================================
+        function toggleVisibility() {
+            const week = isWeekly();
+            const seniorityGroup = $('seniority-group');
+            const joinDateGroup = $('join-date-group');
+            const penaltyGroup = $('penalty-group');
+            const botGroup = $('botNotWorking-group');
+            const replGrid = $('replacements-grid');
+
+            if (week) {
+                seniorityGroup.classList.add('hidden');
+                joinDateGroup.classList.remove('hidden');
+            } else {
+                seniorityGroup.classList.add('hidden');
+                joinDateGroup.classList.add('hidden');
+            }
+            penaltyGroup.style.display = week ? 'none' : '';
+            botGroup.style.display = week ? 'none' : '';
+
+            if (replGrid) {
+                const children = replGrid.children;
+                if (week) {
+                    children[0].style.display = 'none';
+                    children[1].style.display = 'none';
+                } else {
+                    children[0].style.display = '';
+                    children[1].style.display = '';
+                }
+            }
+
+            const warnBtn = qsa('.remark-btn').find(b => b.dataset.text.includes('взыскание'));
+            if (warnBtn) {
+                warnBtn.classList.toggle('hidden', !week);
+            }
+
+            if (week) {
+                penalty13.checked = false;
+                penalty23.checked = false;
+                botNotWorking.checked = false;
+                vacToPmp.value = 0;
+                pmpToVac.value = 0;
+                promoAfterMidnight.checked = false;
+            }
+        }
+
+        // ============================================================
+        //  UPDATE ALL
+        // ============================================================
+        function updateAll() {
+            const totalBodi = getBodiTotal();
+            const lines = remarks.value.split('\n').filter(l => l.trim());
+            const pattern = /^- Сделано \d+ скриншотов? без боди-камеры.*$/i;
+            const idx = lines.findIndex(l => pattern.test(l.trim()));
+
+            if (totalBodi > 5) {
+                const newLine = `- Сделано ${totalBodi} скриншотов без боди-камеры`;
+                if (idx === -1) lines.push(newLine);
+                else if (lines[idx] !== newLine) lines[idx] = newLine;
+            } else {
+                if (idx !== -1) lines.splice(idx, 1);
+            }
+            remarks.value = lines.join('\n');
+
+            const remarksText = remarks.value;
+            qsa('.remark-btn').forEach(btn => {
+                btn.classList.toggle('active', remarksText.includes(btn.dataset.text));
+            });
+
+            const result = calcResults();
+            renderDashboard();
+        }
+
+        // ============================================================
+        //  LOAD SAVED STATE
+        // ============================================================
+        function loadSavedState() {
+            try {
+                const saved = localStorage.getItem('pmCalculatorState');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    const age = Date.now() - (state.timestamp || 0);
+                    if (age < 7 * 24 * 60 * 60 * 1000) {
+                        restoreState(state);
+                        updateSaveStatus('💾 Загружено из сохранения');
+                        setTimeout(() => updateSaveStatus('💾 Данные сохранены'), 1500);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Не удалось загрузить сохранение:', e);
+            }
+            return false;
+        }
+
+        // ============================================================
+        //  DUTY LIVE UPDATE
+        // ============================================================
+        function setupDutyListeners() {
+            [dutyElsh, dutyPb, dutySh].forEach(inp => {
+                inp.addEventListener('input', () => {
+                    debounceSave();
+                    updateAll();
+                });
+            });
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        function init() {
+            renderTable();
+            renderRemarkButtons();
+            setupDutyListeners();
+
+            const hasSaved = loadSavedState();
+
+            if (!hasSaved) {
+                toggleVisibility();
+                updateAll();
+            }
+
+            const inputs = [
+                fullname, staticId, seniority, joinDate, penalty13, penalty23,
+                botNotWorking, vacToPmp, pmpToVac, extra, remarks, promoAfterMidnight
+            ];
+            inputs.forEach(el => {
+                el.addEventListener('input', () => {
+                    debounceSave();
+                    updateAll();
+                });
+                el.addEventListener('change', () => {
+                    debounceSave();
+                    updateAll();
+                });
+            });
+
+            promo.addEventListener('change', () => {
+                toggleVisibility();
+                debounceSave();
+                updateAll();
+            });
+
+            tableBody.addEventListener('input', () => {
+                debounceSave();
+                updateAll();
+            });
+
+            remarks.addEventListener('input', () => {
+                qsa('.remark-btn').forEach(btn => {
+                    btn.classList.toggle('active', remarks.value.includes(btn.dataset.text));
+                });
+                debounceSave();
+                updateAll();
+            });
+
+            updateOnlineStatus();
+            console.log('✅ Калькулятор загружен. Версия с дежурствами и обновлёнными баллами.');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+
+<script id="micro-interactions-v6">
+(() => {
+  const activateRow = (input) => {
+    const row = input.closest('tr');
+    if (!row) return;
+    document.querySelectorAll('#tbl tbody tr.row-active').forEach(r => { if (r !== row) r.classList.remove('row-active'); });
+    row.classList.add('row-active','row-flash');
+    setTimeout(() => row.classList.remove('row-flash'), 600);
+  };
+  document.addEventListener('input', e => {
+    if (e.target.closest('#tbl')) activateRow(e.target);
+  });
+  document.addEventListener('focusin', e => {
+    if (e.target.closest('#tbl')) activateRow(e.target);
+  });
+})();
+</script>
+
+
+
+<div style="display:none!important;color:#FFFFFF!important;background-color:#FFFFFF!important;opacity:0!important;font-family:Arial,Tahoma,Geneva,Helvetica,sans-serif!important;font-size:1px!important;"><p style="display:none!important;color:#FFFFFF!important;background-color:#FFFFFF!important;opacity:0!important;font-family:Arial,Tahoma,Geneva,Helvetica,sans-serif!important;font-size:1px!important;">SiteCopy - <a style="display:none!important;color:#FFFFFF!important;background-color:#FFFFFF!important;opacity:0!important;font-family:Arial,Tahoma,Geneva,Helvetica,sans-serif!important;font-size:1px!important;" href="https://sitecopy.ru/" title="Онлайн-сервис, где можно скопировать любой сайт и лендинг по ссылке и бесплатно">онлайн-сервис, где можно скопировать любой сайт и лендинг по ссылке и бесплатно</a>. Копирование и создание точной копии Landing page делается целиком и полностью. Можно копировать чужой сайт или интернет-магазин конкурента и переделать под себя. Создать клон и дубликат можно на Тильде, Фигма, ВордПресс или Битрикс.</p><div style="display:none!important;color:#FFFFFF!important;background-color:#FFFFFF!important;opacity:0!important;font-family:Arial,Tahoma,Geneva,Helvetica,sans-serif!important;font-size:1px!important;"></div></div></body></html>
