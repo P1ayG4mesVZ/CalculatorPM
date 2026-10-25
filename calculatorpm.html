@@ -1335,7 +1335,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             '7→8': { points: 250, pmp: 60, vac: 5 },
             '8→9': { points: 300, pmp: 70, vac: 5 },
             '9→10': { points: 350, pmp: 80, vac: 5 },
-            'Недельный отчет': { points: 300, pmp: 0, vac: 0 }
+            'Недельный отчет': { points: 300, pmp: 100, vac: 10 }
         };
 
         const REMARK_BUTTONS = [
@@ -1640,6 +1640,8 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             if (isWeek) {
                 if (!joinDate.value) failures.push('Не указана дата вступления во фракцию');
                 if (points < 300) failures.push(`Недостаточно баллов (минимум 300)`);
+				if (pmp < 100) failures.push(`Недостаточно ПМП (минимум 100)`);
+				if (vac < 10) failures.push(`Недостаточно вакцин (минимум 10)`);
                 if (totalBodi > 5) failures.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
                 return failures;
             }
