@@ -1187,8 +1187,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 <input id="joinDate" type="date" value="">
             </div>
             <select id="promo">
-                <option value="3→4" selected="">3→4</option>
-                <option value="4→5">4→5</option>
+                <option value="4→5" selected="">4→5</option>
                 <option value="5→6">5→6</option>
                 <option value="6→7">6→7</option>
                 <option value="7→8">7→8</option>
@@ -1323,7 +1322,6 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             { name: '🚫 Отмена вызова', points: 1 },
             { name: '🏙️ Вакцинация город', points: 3 },
             { name: '🌍 Вакцинация округ', points: 4 },
-            { name: '📋 Медицинские справки', points: 3 },
             { name: '💊 Таблетки', points: 1 }
         ];
 
@@ -1335,7 +1333,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             '7→8': { points: 250, pmp: 60, vac: 5 },
             '8→9': { points: 300, pmp: 70, vac: 5 },
             '9→10': { points: 350, pmp: 80, vac: 5 },
-            'Недельный отчет': { points: 300, pmp: 100, vac: 10 }
+            'Недельный отчет': { points: 300, pmp: 100, vac: 10, pills: 40 }
         };
 
         const REMARK_BUTTONS = [
@@ -1463,7 +1461,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             staticId.value = state.static || '';
             seniority.value = state.seniority || '';
             joinDate.value = state.joinDate || '';
-            promo.value = state.promo || '3→4';
+            promo.value = (state.promo && NORMS[state.promo] && state.promo !== '3→4') ? state.promo : '4→5';
             penalty13.checked = state.penalty13 || false;
             penalty23.checked = state.penalty23 || false;
             botNotWorking.checked = state.botNotWorking || false;
@@ -1572,7 +1570,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
         }
 
         function getNorm() {
-            return NORMS[promo.value] || NORMS['3→4'];
+            return NORMS[promo.value] || NORMS['4→5'];
         }
 
         function getBodiTotal() {
@@ -1596,6 +1594,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             let points = 0,
                 pmp = 0,
                 vac = 0,
+                pills = 0,
                 hasError = false;
 
             rows.forEach((row, i) => {
@@ -1607,6 +1606,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 points += pts;
                 if (i === 0 || i === 1) pmp += accepted;
                 if (i === 3 || i === 4) vac += accepted;
+                if (i === 5) pills += accepted;
                 row.querySelector('.acc').textContent = accepted;
                 row.querySelector('.pts').textContent = pts;
                 row.classList.toggle('error', r > t);
@@ -1627,11 +1627,11 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             points += +extra.value || 0;
 
             const norm = getNorm();
-            return { points, pmp, vac, hasError, norm, totalBodi: getBodiTotal(), duty };
+            return { points, pmp, vac, pills, hasError, norm, totalBodi: getBodiTotal(), duty };
         }
 
         function getFailures(result) {
-            const { points, pmp, vac, hasError, norm, totalBodi } = result;
+            const { points, pmp, vac, pills, hasError, norm, totalBodi } = result;
             const isWeek = isWeekly();
             const failures = [];
 
@@ -1641,7 +1641,8 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 if (!joinDate.value) failures.push('Не указана дата вступления во фракцию');
                 if (points < 300) failures.push(`Недостаточно баллов (минимум 300)`);
 				if (pmp < 100) failures.push(`Недостаточно ПМП (минимум 100)`);
-				if (vac < 10) failures.push(`Недостаточно вакцин (минимум 10)`);
+				if (vac < norm.vac) failures.push(`Недостаточно вакцин (минимум ${norm.vac})`);
+                if (pills < norm.pills) failures.push(`Недостаточно таблеток (минимум ${norm.pills})`);
                 if (totalBodi > 5) failures.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
                 return failures;
             }
@@ -1665,7 +1666,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             const failures = getFailures(result);
             const verdictOk = failures.length === 0 && staticId.value.trim() && (isWeek ? true : !penalty13
                 .checked && !penalty23.checked);
-            const { points, pmp, vac, norm, totalBodi, duty } = result;
+            const { points, pmp, vac, pills, norm, totalBodi, duty } = result;
 
             // Обновляем отображение очков за дежурства
             dutyElshPoints.textContent = `${duty.ptsE} баллов`;
@@ -1703,7 +1704,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 html +=
                     `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${rows[4]?.querySelector('.acc')?.textContent || 0}</span></div>`;
                 html +=
-                    `<div class="report-category"><span class="label">💊 Таблетки</span><span class="value">${rows[6]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                    `<div class="report-category"><span class="label">💊 Таблетки</span><span class="value">${pills} / ${norm.pills}</span></div>`;
                 html +=
                     `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
 
@@ -1803,7 +1804,7 @@ html +=
             const failures = getFailures(result);
             const verdictOk = failures.length === 0 && staticId.value.trim() && (isWeek ? true : !penalty13
                 .checked && !penalty23.checked);
-            const { points, pmp, vac, norm, totalBodi, duty } = result;
+            const { points, pmp, vac, pills, norm, totalBodi, duty } = result;
             const rows = qsa('#tbl tbody tr');
 
             let lines = [];
@@ -1831,7 +1832,7 @@ html +=
                 lines.push(`> ПМП ночь: ${rows[1]?.querySelector('.acc')?.textContent || 0}`);
                 lines.push(`> Вакцинации город: ${rows[3]?.querySelector('.acc')?.textContent || 0}`);
                 lines.push(`> Вакцинации округ: ${rows[4]?.querySelector('.acc')?.textContent || 0}`);
-                lines.push(`> Таблетки: ${rows[6]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Таблетки: ${pills}`);
                 // Дежурства — только общая сумма
                 if (duty.total > 0) {
                     lines.push(`> Дежурства: ${duty.total} баллов`);
@@ -1850,7 +1851,7 @@ html +=
                 lines.push(`> Баллы: ${points}/${norm.points}`);
                 lines.push(`> ПМП: ${pmp}/${norm.pmp}`);
                 lines.push(`> Вакцинации: ${vac}/${norm.vac}`);
-                lines.push(`> Таблетки: ${rows[6]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Таблетки: ${pills}/${norm.pills}`);
                 // Дежурства — только общая сумма
                 if (duty.total > 0) {
                     lines.push(`> Дежурства: ${duty.total} баллов`);
@@ -1895,21 +1896,41 @@ lines.push('');
         // ============================================================
         //  COPY REPORT
         // ============================================================
-        window.copyReport = function() {
+        window.copyReport = async function() {
             if (!out.value) generateReport();
-            navigator.clipboard.writeText(out.value).then(() => {
-                copyBtn.classList.add('btn-success');
-                copyBtn.textContent = '✅ Скопировано!';
+            const reportText = out.value;
+            if (!reportText) return;
+            function showCopyStatus(success) {
+                copyBtn.classList.toggle('btn-success', success);
+                copyBtn.textContent = success ? '✅ Скопировано!' : '⚠️ Выделите текст и скопируйте вручную';
                 setTimeout(() => {
                     copyBtn.classList.remove('btn-success');
                     copyBtn.textContent = '📋 Копировать отчёт';
-                }, 1200);
-            }).catch(() => {
-                copyBtn.textContent = '❌ Ошибка';
-                setTimeout(() => {
-                    copyBtn.textContent = '📋 Копировать отчёт';
-                }, 1200);
-            });
+                }, success ? 1800 : 3500);
+            }
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                try {
+                    await navigator.clipboard.writeText(reportText);
+                    showCopyStatus(true);
+                    return;
+                } catch (error) { /* Try fallback. */ }
+            }
+            const active = document.activeElement;
+            const start = out.selectionStart;
+            const end = out.selectionEnd;
+            out.focus();
+            out.select();
+            let copied = false;
+            try { copied = document.execCommand('copy'); }
+            catch (error) { copied = false; }
+            if (copied) {
+                out.setSelectionRange(start, end);
+                if (active && active !== out && typeof active.focus === 'function') active.focus();
+            } else {
+                out.focus();
+                out.select();
+            }
+            showCopyStatus(copied);
         };
 
         // ============================================================
@@ -1920,7 +1941,7 @@ lines.push('');
             staticId.value = '';
             seniority.value = '';
             joinDate.value = '';
-            promo.value = '3→4';
+            promo.value = '4→5';
             penalty13.checked = false;
             penalty23.checked = false;
             botNotWorking.checked = false;
