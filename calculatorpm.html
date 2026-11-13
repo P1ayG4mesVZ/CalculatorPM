@@ -1734,7 +1734,6 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 html +=
                     `<div class="progress-label"><span>💉 Вакцинации</span><span class="val">${vac} / ${norm.vac}</span></div>`;
                 html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
-                html += `<div class="report-category"><span class="label">💊 Таблетки</span><span class="value">${qsa('#tbl tbody tr')[6]?.querySelector('.acc')?.textContent || 0} шт. / ${qsa('#tbl tbody tr')[6]?.querySelector('.pts')?.textContent || 0} баллов</span></div>`;
                 html += `</div>`;
 
                 // Дежурства
