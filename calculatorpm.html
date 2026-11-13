@@ -1811,7 +1811,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 lines.push(`> ПМП ночь: ${rows[1]?.querySelector('.acc')?.textContent || 0}`);
                 lines.push(`> Вакцинации город: ${rows[3]?.querySelector('.acc')?.textContent || 0}`);
                 lines.push(`> Вакцинации округ: ${rows[4]?.querySelector('.acc')?.textContent || 0}`);
-                lines.push(`> Таблетки: ${pills}`);
+                lines.push(`> Таблетки: ${pills}/${norm.pills}`);
                 // Дежурства — только общая сумма
                 if (duty.total > 0) {
                     lines.push(`> Дежурства: ${duty.total} баллов`);
@@ -1830,7 +1830,6 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 lines.push(`> Баллы: ${points}/${norm.points}`);
                 lines.push(`> ПМП: ${pmp}/${norm.pmp}`);
                 lines.push(`> Вакцинации: ${vac}/${norm.vac}`);
-                lines.push(`> Таблетки: ${pills}/${norm.pills}`);
                 // Дежурства — только общая сумма
                 if (duty.total > 0) {
                     lines.push(`> Дежурства: ${duty.total} баллов`);
