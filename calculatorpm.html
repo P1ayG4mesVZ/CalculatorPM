@@ -1708,12 +1708,12 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                         `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
                 }
                 html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${points}</span></div>`;
-                if (!verdictOk && failures.length > 0) {
-                    html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
+                // Недельный отчёт всегда одобрен, даже если нормы не выполнены.
+                html += `<div class="report-ok">✅ Отчёт одобрен</div>`;
+                if (failures.length > 0) {
+                    html += `<div class="report-errors"><div class="label">⚠️ Замечания / невыполненные нормы</div><ul>`;
                     failures.forEach(f => { html += `<li>${f}</li>`; });
                     html += `</ul></div>`;
-                } else if (verdictOk) {
-                    html += `<div class="report-ok">✅ Отчёт одобрен</div>`;
                 }
             } else {
                 html +=
@@ -1818,8 +1818,9 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 const extraVal = +extra.value || 0;
                 if (extraVal > 0) lines.push(`> Доп. баллы: ${extraVal}`);
                 lines.push('');
-                lines.push(verdictOk ? '# ОТЧЁТ ОДОБРЕН #' : '# ОТЧЁТ ОТКЛОНЁН #');
-                if (!verdictOk && failures.length > 0) {
+                // Статус недельного отчёта не зависит от выполнения нормы.
+                lines.push('# ОТЧЁТ ОДОБРЕН #');
+                if (failures.length > 0) {
                     lines.push('');
                     failures.forEach(f => lines.push('• ' + f));
                 }
