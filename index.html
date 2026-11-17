@@ -1212,6 +1212,10 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 <input type="checkbox" id="promoAfterMidnight">
                 <label for="promoAfterMidnight" class="label-text">🌙 Повышение после 00:00</label>
             </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="recertification">
+                <label for="recertification" class="label-text">📋 Переаттестация</label>
+            </div>
         </div>
     </div>
 
@@ -1352,6 +1356,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
         const joinDate = $('joinDate');
         const promo = $('promo');
         const penalty13 = $('penalty13');
+        const recertification = $('recertification');
         const vacToPmp = $('vacToPmp');
         const pmpToVac = $('pmpToVac');
         const extra = $('extra');
@@ -1426,6 +1431,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
                 joinDate: joinDate.value,
                 promo: promo.value,
                 penalty13: penalty13.checked,
+                recertification: recertification.checked,
                 vacToPmp: vacToPmp.value,
                 pmpToVac: pmpToVac.value,
                 extra: extra.value,
@@ -1447,6 +1453,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             joinDate.value = state.joinDate || '';
             promo.value = (state.promo && NORMS[state.promo] && state.promo !== '3→4') ? state.promo : '4→5';
             penalty13.checked = state.penalty13 || false;
+            recertification.checked = state.recertification || false;
             vacToPmp.value = state.vacToPmp || 0;
             pmpToVac.value = state.pmpToVac || 0;
             extra.value = state.extra || 0;
@@ -1630,6 +1637,7 @@ textarea#out{background:#06121e;border:1px solid var(--line);border-radius:11px;
             }
 
             if (penalty13.checked) failures.push('Имеются активные взыскания');
+            if (recertification.checked) failures.push('У вас роль переаттестация. Закройте ее, прежде чем подавать отчет на повышение');
             if (hasError) failures.push('Ошибки в таблице (заявлено меньше, чем не принято)');
             if (points < norm.points) failures.push(`Недостаточно баллов (минимум ${norm.points})`);
             if (pmp < norm.pmp) failures.push(`Недостаточно ПМП (нужно ${norm.pmp})`);
@@ -1921,6 +1929,7 @@ lines.push('');
             joinDate.value = '';
             promo.value = '4→5';
             penalty13.checked = false;
+            recertification.checked = false;
             vacToPmp.value = 0;
             pmpToVac.value = 0;
             extra.value = 0;
@@ -1984,6 +1993,7 @@ lines.push('');
 
             if (week) {
                 penalty13.checked = false;
+            recertification.checked = false;
                 vacToPmp.value = 0;
                 pmpToVac.value = 0;
                 promoAfterMidnight.checked = false;
@@ -2067,7 +2077,7 @@ lines.push('');
             }
 
             const inputs = [
-                fullname, staticId, seniority, joinDate, penalty13,
+                fullname, staticId, seniority, joinDate, penalty13, recertification,
                 vacToPmp, pmpToVac, extra, remarks, promoAfterMidnight
             ];
             inputs.forEach(el => {
